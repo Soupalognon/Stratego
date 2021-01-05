@@ -1,0 +1,49 @@
+/**
+ *------
+ * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
+ * StrategoSoupalognon implementation : © <Your name here> <Your email address here>
+ *
+ * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
+ * See http://en.boardgamearena.com/#!doc/Studio for more information.
+ * -----
+ *
+ * strategosoupalognon.css
+ *
+ * StrategoSoupalognon stylesheet
+ *
+ */
+ .playersoldiers {
+    display: inline-block;
+    position: relative;
+    margin-top: 5px;
+    width: 100%;
+}
+
+ #board {
+    background-image: url('img/Savannah.jpg');
+    position: relative;
+    width: 700px;
+    height: 700px;
+}
+
+.square {
+    width: 66px;
+    height: 66px;
+    position: absolute;
+
+    border:1px solid transparent;
+    box-sizing: content-box;
+}
+
+.soldiers {
+    width: 68px;
+    height: 68px;
+    position: absolute;
+    background-image: url('img/Animals.jpg'); /*Soldier*/
+}
+
+.squareOutline {
+    cursor: pointer;
+    border:2px solid red;
+    box-sizing: content-box;
+}
