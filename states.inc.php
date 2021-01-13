@@ -22,7 +22,7 @@ $machinestates = array(
         "description" => "",
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => array( "" => 3 )
+        "transitions" => array( "" => 2 )
     ),
     
     2 => array(

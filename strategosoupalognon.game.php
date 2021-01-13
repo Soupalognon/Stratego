@@ -105,23 +105,23 @@ class StrategoSoupalognon extends Table
 
 
         //Create a cheat to start at a advanced turn
-        $player_id = 2337782;
-        {
-            //Update board
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 1 WHERE (board_y = 6 AND board_x = 1)");
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 2, soldier_id = 2 WHERE (board_y = 7 AND board_x = 5)");
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 4, soldier_id = 3 WHERE (board_y = 5 AND board_x = 2)");
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 5, soldier_id = 4 WHERE (board_y = 8 AND board_x = 7)");
-        }
+        // $player_id = 2337782;
+        // {
+        //     //Update board
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 1 WHERE (board_y = 6 AND board_x = 1)");
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 2, soldier_id = 2 WHERE (board_y = 7 AND board_x = 5)");
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 4, soldier_id = 3 WHERE (board_y = 5 AND board_x = 2)");
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 5, soldier_id = 4 WHERE (board_y = 8 AND board_x = 7)");
+        // }
 
-        $player_id = 2337783;
-        {
-            //Update board
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 5 WHERE (board_y = 5 AND board_x = 1)");
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 0, soldier_id = 6 WHERE (board_y = 3 AND board_x = 5)");
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 11, soldier_id = 7 WHERE (board_y = 4 AND board_x = 3)");
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 8 WHERE (board_y = 4 AND board_x = 9)");
-        }
+        // $player_id = 2337783;
+        // {
+        //     //Update board
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 5 WHERE (board_y = 5 AND board_x = 1)");
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 0, soldier_id = 6 WHERE (board_y = 3 AND board_x = 5)");
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 11, soldier_id = 7 WHERE (board_y = 4 AND board_x = 3)");
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 8 WHERE (board_y = 4 AND board_x = 9)");
+        // }
 
         //Init global value able to know if a soldier has been select for movement
         self::setGameStateInitialValue( 'ChosenSoldierId', 0 );
