@@ -350,8 +350,6 @@ function (dojo, declare) {
                         // console.log("Soldier id = " + this.chosenSoldierId);
                     }
 
-                    var stateBeforeAjaxCall = this.currentState;
-
                     this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + tmpCurrentState + ".html", {
                         lock : true,
                         x : coords[1],
@@ -363,31 +361,12 @@ function (dojo, declare) {
                         if(is_error) {  //If error, select the previous soldier saved by server
                             dojo.query( '.square' ).removeClass( 'squareOutline' );
 
-                            if(this.currentState == 'moveSoldier') {
+                            if(this.currentState == 'moveSoldier') {    
                                 square_id = document.getElementById("soldier_" + this.chosenSoldierId).parentNode.id;
                                 coords = square_id.split('_');
                                 x = coords[1];
                                 y = coords[2];
                                 dojo.addClass( 'square_' + coords[1] + '_'+ coords[2], 'squareOutline' );
-                            }
-                        }
-                        else {
-                            // console.log("stateBeforeAjaxCall = " + stateBeforeAjaxCall);
-                            // console.log("this.currentState = " + this.currentState);
-                            if(stateBeforeAjaxCall == 'selectSoldier' && this.currentState == 'moveSoldier') {  //Display square around selected soldier
-                                // dojo.addClass( 'square_' + coords[1] + '_'+ coords[2], 'squareOutline' );
-                            }
-                            else if(stateBeforeAjaxCall == 'moveSoldier' && this.currentState == 'moveSoldier') {   //Display square around new selected soldier
-                                // dojo.query( '.square' ).removeClass( 'squareOutline' ); //Remove square around previous selected soldier
-                                // dojo.addClass( 'square_' + coords[1] + '_'+ coords[2], 'squareOutline' );
-                            }
-                            
-                            if(this.currentState == 'specialScoutAction') {
-                                dojo.query( '.square' ).removeClass( 'squareOutline' );
-                                dojo.addClass( 'square_' + coords[1] + '_'+ coords[2], 'squareOutline' );
-                            }
-                            else if(stateBeforeAjaxCall == 'specialScoutAction') {
-                                dojo.query( '.square' ).removeClass( 'squareOutline' );
                             }
                         }
                     });
@@ -487,6 +466,7 @@ function (dojo, declare) {
             x = coords[1];
             y = coords[2];
 
+            //Display the opponent soldier in a temporary object
             dojo.place(
                 this.format_block('jstpl_soldiers', 
                 {
@@ -514,7 +494,7 @@ function (dojo, declare) {
                                 duration: 250,
                                 onEnd: function( node ) {
                                     dojo.query('#soldier_1000').forEach(dojo.destroy);
-                                    dojo.query( '.square' ).removeClass( 'squareOutline' );
+                                    // dojo.query( '.square' ).removeClass( 'squareOutline' );
                                 }
                               } ),
                 dojo.fadeIn( {  node: 'soldier_' + opponent_soldier_id,
@@ -553,7 +533,7 @@ function (dojo, declare) {
             opponent_soldier_id = notif.args.opponent_soldier_id;
 
             this.slideToObjectAndDestroy('soldier_' + opponent_soldier_id, 'overall_player_board_' + this.player_id, 250);
-            this.removeSoldierInGamedatasById(opponent_soldier_id);
+            // this.removeSoldierInGamedatasById(opponent_soldier_id);
 
             this.moveSolider(active_player, soldier_id, x, y);
         },
@@ -580,18 +560,6 @@ function (dojo, declare) {
 
             soldier_id = notif.args.soldier_id;
             opponent_soldier_id = notif.args.opponent_soldier_id;
-
-            //Invert soldier and opponent soldier if your are or not the active player
-            // if(active_player == this.player_id) {
-            //     soldier_id = notif.args.soldier_id;
-            //     opponent_soldier_id = notif.args.opponent_soldier_id;
-            //     this.removeSoldierInGamedatasById(this.gamedatas.player_soldiers, soldier_id);
-            // }
-            // else {
-            //     soldier_id = notif.args.opponent_soldier_id;
-            //     opponent_soldier_id = notif.args.soldier_id;
-            //     this.removeSoldierInGamedatasById(this.gamedatas.opponent_soldiers, soldier_id);
-            // }
 
             this.slideToObjectAndDestroy('soldier_' + soldier_id, 'overall_player_board_' + this.player_id, 250);
 
