@@ -361,7 +361,7 @@ function (dojo, declare) {
                         if(is_error) {  //If error, select the previous soldier saved by server
                             dojo.query( '.square' ).removeClass( 'squareOutline' );
 
-                            if(this.currentState == 'moveSoldier') {    
+                            if(tmpCurrentState == 'moveSoldier') {    
                                 square_id = document.getElementById("soldier_" + this.chosenSoldierId).parentNode.id;
                                 coords = square_id.split('_');
                                 x = coords[1];

@@ -109,7 +109,7 @@ class StrategoSoupalognon extends Table
         {
             //Update board
             self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 1 WHERE (board_y = 6 AND board_x = 1)");
-            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 2, soldier_id = 2 WHERE (board_y = 7 AND board_x = 5)");
+            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 3, soldier_id = 2 WHERE (board_y = 7 AND board_x = 5)");
             self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 4, soldier_id = 3 WHERE (board_y = 5 AND board_x = 2)");
             self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 5, soldier_id = 4 WHERE (board_y = 8 AND board_x = 7)");
         }
@@ -226,10 +226,12 @@ class StrategoSoupalognon extends Table
 ////////////    
 
     function getOpponentID($player_id) {
-        if($player_id == self::getGameStateValue( 'FirstPlayerID' ))
+        $firstPlayerID = self::getGameStateValue( 'FirstPlayerID' );
+
+        if($player_id == $firstPlayerID)
             return self::getGameStateValue( 'SecondPlayerID' );
         else
-            return self::getGameStateValue( 'FirstPlayerID' );
+            return $firstPlayerID;
     }
 
     function specialScoutMovement($to_x, $to_y, $from_x, $from_y) {
@@ -256,13 +258,67 @@ class StrategoSoupalognon extends Table
     }
 
     //Invert Y position on the board if you are the second player, to be able to display current player always at the bottom of the board
-    function invertLineOnSquare($player_id, $y) {
-        $SecondPlayerID = self::getGameStateValue( 'SecondPlayerID' );
-        if($player_id == $SecondPlayerID) {   //If the player_id is the second in the list
+    function invertLineOnBoard($player_id, $y) {
+        if($player_id == self::getGameStateValue( 'SecondPlayerID' )) {   //If the player_id is the second in the list
             $y = 11 - $y;   //Invert positon on the board
         }
 
         return $y;
+    }
+
+    function invertLineOnSquare2($y) {
+        return 11 - $y;
+    }
+
+    function sendMovementNotification($notification, $message, $x, $y, $soldier_id, $opponent_soldier_id, $player_id) {
+        self::notifyPlayer(
+            self::getGameStateValue( 'FirstPlayerID' ),
+            $notification, 
+            clienttranslate($message), 
+            array (
+                'x' => $x,
+                'y' => $y,
+                'soldier_id' => $soldier_id,
+                'opponent_soldier_id' => $opponent_soldier_id,
+                'player_id' => $player_id,
+                'player_name' => $player_id //WRONG!!!!
+            )
+        );
+
+        self::notifyPlayer(
+            self::getGameStateValue( 'SecondPlayerID' ),
+            $notification, 
+            clienttranslate($message),
+            array (
+                'x' => $x,
+                'y' => self::invertLineOnSquare2($y),
+                'soldier_id' => $soldier_id,
+                'opponent_soldier_id' => $opponent_soldier_id,
+                'player_id' => $player_id,
+                'player_name' => $player_id //WRONG!!!!
+            )
+        );
+    }
+
+    function sendDiscoverNotification($soldier_id, $soldier_type, $opponent_soldier_id, $opponent_soldier_type, $player_id) {
+        self::notifyPlayer(
+            $player_id,
+            'discoverOpponentSoldier', 
+            clienttranslate(''), 
+            array (
+                'soldier_id' => $opponent_soldier_id,
+                'soldier_type' => $opponent_soldier_type
+            )
+        );
+        self::notifyPlayer(
+            self::getOpponentID($player_id),
+            'discoverOpponentSoldier', 
+            clienttranslate(''), 
+            array (
+                'soldier_id' => $soldier_id,
+                'soldier_type' => $soldier_type
+            )
+        );
     }
 
 
@@ -280,7 +336,7 @@ class StrategoSoupalognon extends Table
         $y = self::getGameStateValue( 'ScoutSpecialActionY' );
         $ChosenSoldierId = self::getGameStateValue( 'ChosenSoldierId' ) ;
 
-        $y = self::invertLineOnSquare($opponent_player_id, $y);
+        $y = self::invertLineOnBoard($opponent_player_id, $y);
 
         //Send movement only to opponent player
         self::notifyPlayer(
@@ -305,7 +361,7 @@ class StrategoSoupalognon extends Table
     function putBackOnHand($x, $y, $player_id) {
         self::checkAction("putBackOnHand");
 
-        $y = self::invertLineOnSquare($player_id, $y);
+        $y = self::invertLineOnBoard($player_id, $y);
 
         $sql = "SELECT board_player player_id, soldier_type soldier_type, soldier_id soldier_id FROM board WHERE (board_x = $x AND board_y = $y)";
         $soldier = self::getCollectionFromDb( $sql );
@@ -395,8 +451,10 @@ class StrategoSoupalognon extends Table
     }
 
     function selectSoldier($x, $y) {
+        self::checkAction("selectSoldier");
+
         $player_id = self::getActivePlayerId();
-        $y = self::invertLineOnSquare($player_id, $y);
+        $y = self::invertLineOnBoard($player_id, $y);
 
         //Identify which square has been selected
         $sql = "SELECT board_player player_id, soldier_type soldier_type, soldier_id soldier_id FROM board WHERE (board_x = $x AND board_y = $y)";
@@ -418,18 +476,17 @@ class StrategoSoupalognon extends Table
         $this->gamestate->nextState("selectSoldier");
     }
 
-
+    //Verify movement conditions, attack an opponent or move the soldier on an empty square
     function moveSoldier($x, $y) {
         self::checkAction("moveSoldier");
 
         $player_id = self::getActivePlayerId();
-        $y = self::invertLineOnSquare($player_id, $y);
+        $y = self::invertLineOnBoard($player_id, $y);
 
         //Identify which square has been selected
         $sql = "SELECT board_player player_id, soldier_type soldier_type, soldier_id soldier_id FROM board WHERE (board_x = $x AND board_y = $y)";
         $soldier = self::getCollectionFromDb($sql);
         $soldierOwner = (int)array_keys($soldier)[0];
-        // self::dump( "soldierOwner = ", $soldierOwner);
 
         $ChosenSoldierId = self::getGameStateValue('ChosenSoldierId');
         
@@ -440,13 +497,18 @@ class StrategoSoupalognon extends Table
         $ChosenSoldierY = $selectedSoldier[$player_id]['y'];
         $ChosenSoldierType = $selectedSoldier[$player_id]['soldier_type'];
 
-        if($soldierOwner == $player_id) {
-            $this->gamestate->nextState("selectSoldier");
+        if($soldierOwner == $player_id) {   //If a player click on another soldier of its own, select the new solider
+            if($this->gamestate->state()["name"] == "specialScoutAction") {
+                throw new BgaUserException ( 'You cannot change selected soldier, you already moved' );
+            }
+            else {
+                $this->gamestate->nextState("selectSoldier");
 
-            $y = self::invertLineOnSquare($player_id, $y);
-            self::moveSoldier($x, $y);
+                $y = self::invertLineOnBoard($player_id, $y);
+                self::selectSoldier($x, $y);
 
-            return;
+                return;
+            }
         }
         else if((abs($x - $ChosenSoldierX) >= 1 && abs($y - $ChosenSoldierY) >= 1)) {
             throw new BgaUserException ( 'You cannot move in diagonal' );
@@ -468,79 +530,51 @@ class StrategoSoupalognon extends Table
             }
         }
 
-        $sql = "SELECT player_id player_id FROM player";
-        $players = self::getCollectionFromDb( $sql );
-
-        if($soldier[$soldierOwner]['soldier_type'] == $this->BOMB && $soldierOwner != $player_id) {
+        //Conditions for specific soldiers
+        if($soldier[$soldierOwner]['soldier_type'] == $this->BOMB) {
             if($ChosenSoldierType != $this->MINER) {
-                $ChosenSoldierType = $soldier[$soldierOwner]['soldier_type'] - 1;   //Cheat to kill any soldier which attack the bomb
+                $ChosenSoldierType = $this->BOMB - 1;   //Cheat to kill any soldier which attack the bomb
             }
         }
-        else if($soldier[$soldierOwner]['soldier_type'] == $this->MARSHAL && $soldierOwner != $player_id) {
+        else if($soldier[$soldierOwner]['soldier_type'] == $this->MARSHAL) {
             if($ChosenSoldierType == $this->SPY) {
-                $ChosenSoldierType = $soldier[$soldierOwner]['soldier_type'] + 1;   //Cheat to kill the marshal
+                $ChosenSoldierType = $this->MARSHAL + 1;   //Cheat to kill the marshal
             }
         }
-        else if($soldier[$soldierOwner]['soldier_type'] == $this->FLAG && $soldierOwner != $player_id) {   //End of the game
-            // Update scores
-            $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = $player_id";
+        else if($soldier[$soldierOwner]['soldier_type'] == $this->FLAG) {   //End of the game
+            //Get opponent score
+            $oppopent_player_id = self::getOpponentID($player_id);
+            $sql = "SELECT player_id player_id, player_score player_score FROM player WHERE player_id = $oppopent_player_id";
+            $opponentscore = self::getCollectionFromDb( $sql );
+            $opponentscore = $opponentscore[$oppopent_player_id]['player_score'];
+            // self::dump( "opponentscore = ", $opponentscore);
+            
+            // Update winner score
+            $sql = "UPDATE player SET player_score = $opponentscore + 1 WHERE player_id = $player_id";
             self::DbQuery( $sql );
+
+            //Send update to players
+            $newScores = self::getCollectionFromDb( "SELECT player_id, player_score FROM player", true );
+            self::notifyAllPlayers( "newScores", "", array(
+                "scores" => $newScores
+            ) );
 
             $this->gamestate->nextState('endGame');
             return;
         }
 
-        // Verify if you click on an opponent soldier, you will attack! and maybe die...
-        if($ChosenSoldierType > $soldier[$soldierOwner]['soldier_type']) { //You attack a weaker opponent soldier (or selected an empty square)
-            //Update board
+        // Verify if you just move on an empty square or, if you click on an opponent soldier, you will attack! and maybe die...
+        if($soldier[$soldierOwner]['soldier_type'] == $this->EMPTY_SQUARE) {
             self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = $ChosenSoldierType, soldier_id = $ChosenSoldierId WHERE (board_x = $x AND board_y = $y)");
             self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $ChosenSoldierX AND board_y = $ChosenSoldierY)");
 
-            if($soldier[$soldierOwner]['soldier_type'] == $this->EMPTY_SQUARE) { //If it is an empty square
-                $message = '${player_name} moves a soldier on board';
-                $notification = 'moveSoldierEmptySquare';
-            }
-            else {
-                $message = '${player_name} attack a weaker soldier!!';
-                $notification = 'attackWeakerSoldier';
-
-                // Update scores
-                $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = $player_id";
-                self::DbQuery( $sql );
+            if($ChosenSoldierType == $this->SCOUT) { //Avoid sending info to do not tell it is a scout!
+                $yTmp = self::invertLineOnBoard($player_id, $y);
 
                 self::notifyPlayer(
                     $player_id,
-                    'discoverOpponentSoldier', 
-                    clienttranslate(''), 
-                    array (
-                        'soldier_id' => $soldier[$soldierOwner]['soldier_id'],
-                        'soldier_type' => $soldier[$soldierOwner]['soldier_type']
-                    )
-                );
-                self::notifyPlayer(
-                    self::getOpponentID($player_id),
-                    'discoverOpponentSoldier', 
-                    clienttranslate(''), 
-                    array (
-                        'soldier_id' => $ChosenSoldierId,
-                        'soldier_type' => $ChosenSoldierType
-                    )
-                );
-            }
-    
-            foreach($players as $database_player_id => $player) {
-                if($ChosenSoldierType == $this->SCOUT
-                && $player_id != $database_player_id
-                && $soldier[$soldierOwner]['soldier_type'] == $this->EMPTY_SQUARE) { //If you are not the active player, avoid sending info to not tell it is a scout! (because of special action)
-                    continue;
-                }
-
-                $yTmp = self::invertLineOnSquare($database_player_id, $y);
-    
-                self::notifyPlayer(
-                    $database_player_id,
-                    $notification, 
-                    clienttranslate($message), 
+                    'moveSoldierEmptySquare', 
+                    clienttranslate('${player_name} moves a soldier on board'), 
                     array (
                         'x' => $x,
                         'y' => $yTmp,
@@ -554,6 +588,38 @@ class StrategoSoupalognon extends Table
                 self::setGameStateValue( 'ScoutSpecialActionX', $x );   //Save value to be able to use it if active player click EndTurn Button
                 self::setGameStateValue( 'ScoutSpecialActionY', $y );   //Save value to be able to use it if active player click EndTurn Button
             }
+            else {
+                self::sendMovementNotification('moveSoldierEmptySquare', 
+                                                '${player_name} moves a soldier on board', 
+                                                $x, 
+                                                $y, 
+                                                $ChosenSoldierId, 
+                                                $soldier[$soldierOwner]['soldier_id'], 
+                                                $player_id);
+            }
+        }
+        else if($ChosenSoldierType > $soldier[$soldierOwner]['soldier_type']) { //You attack a weaker opponent soldier or select an empty square
+            //Update board
+            self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = $ChosenSoldierType, soldier_id = $ChosenSoldierId WHERE (board_x = $x AND board_y = $y)");
+            self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $ChosenSoldierX AND board_y = $ChosenSoldierY)");
+
+            // Update scores
+            $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = $player_id";
+            self::DbQuery( $sql );
+
+            self::sendDiscoverNotification($ChosenSoldierId, 
+                                            $ChosenSoldierType, 
+                                            $soldier[$soldierOwner]['soldier_id'], 
+                                            $soldier[$soldierOwner]['soldier_type'], 
+                                            $player_id);
+
+            self::sendMovementNotification('attackWeakerSoldier', 
+                                            '${player_name} attack a weaker soldier!!', 
+                                            $x, 
+                                            $y, 
+                                            $ChosenSoldierId, 
+                                            $soldier[$soldierOwner]['soldier_id'], 
+                                            $player_id);
 
             $newScores = self::getCollectionFromDb( "SELECT player_id, player_score FROM player", true );
             self::notifyAllPlayers( "newScores", "", array(
@@ -565,89 +631,37 @@ class StrategoSoupalognon extends Table
             self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $x AND board_y = $y)");
             self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $ChosenSoldierX AND board_y = $ChosenSoldierY)");
 
-            self::notifyPlayer(
-                $player_id,
-                'discoverOpponentSoldier', 
-                clienttranslate(''), 
-                array (
-                    'soldier_id' => $soldier[$soldierOwner]['soldier_id'],
-                    'soldier_type' => $soldier[$soldierOwner]['soldier_type']
-                )
-            );
-            self::notifyPlayer(
-                self::getOpponentID($player_id),
-                'discoverOpponentSoldier', 
-                clienttranslate(''), 
-                array (
-                    'soldier_id' => $ChosenSoldierId,
-                    'soldier_type' => $ChosenSoldierType
-                )
-            );
+            self::sendDiscoverNotification($ChosenSoldierId, 
+                                            $ChosenSoldierType, 
+                                            $soldier[$soldierOwner]['soldier_id'], 
+                                            $soldier[$soldierOwner]['soldier_type'], 
+                                            $player_id);
 
-            foreach($players as $database_player_id => $player) {
-                $yTmp = self::invertLineOnSquare($database_player_id, $y);
-    
-                self::notifyPlayer(
-                    $database_player_id,
-                    'attackSameSoldier', 
-                    clienttranslate('${player_name} attack a soldier of the same level...'), 
-                    array (
-                        'x' => $x,
-                        'y' => $yTmp,
-                        'soldier_id' => $ChosenSoldierId,
-                        'opponent_soldier_id' => $soldier[$soldierOwner]['soldier_id'],
-                        'player_id' => $player_id,
-                        'player_name' => $player_id //WRONG!!!!
-                    )
-                );
-            }
+            self::sendMovementNotification('attackSameSoldier', 
+                                            '${player_name} attack a soldier of the same level...', 
+                                            $x, 
+                                            $y, 
+                                            $ChosenSoldierId, 
+                                            $soldier[$soldierOwner]['soldier_id'], 
+                                            $player_id);
         }
         else {  //You attack a stronger soldier, you die...
             //Update board
             self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $ChosenSoldierX AND board_y = $ChosenSoldierY)");
 
-            self::notifyPlayer(
-                $player_id,
-                'discoverOpponentSoldier', 
-                clienttranslate(''), 
-                array (
-                    'soldier_id' => $soldier[$soldierOwner]['soldier_id'],
-                    'soldier_type' => $soldier[$soldierOwner]['soldier_type']
-                )
-            );
-            self::notifyPlayer(
-                self::getOpponentID($player_id),
-                'discoverOpponentSoldier', 
-                clienttranslate(''), 
-                array (
-                    'soldier_id' => $ChosenSoldierId,
-                    'soldier_type' => $ChosenSoldierType
-                )
-            );
+            self::sendDiscoverNotification($ChosenSoldierId, 
+                                            $ChosenSoldierType, 
+                                            $soldier[$soldierOwner]['soldier_id'], 
+                                            $soldier[$soldierOwner]['soldier_type'], 
+                                            $player_id);
 
-            foreach($players as $database_player_id => $player) {
-                $yTmp = self::invertLineOnSquare($database_player_id, $y);
-
-                if($database_player_id != $player_id) {
-                    // Update scores
-                    $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = $database_player_id";
-                    self::DbQuery( $sql );
-                }
-    
-                self::notifyPlayer(
-                    $database_player_id,
-                    'attackStrongerSoldier', 
-                    clienttranslate('${player_name} attacks a stronger soldier...'), 
-                    array (
-                        'x' => $x,
-                        'y' => $yTmp,
-                        'soldier_id' => $ChosenSoldierId,
-                        'opponent_soldier_id' => $soldier[$soldierOwner]['soldier_id'],
-                        'player_id' => $player_id,
-                        'player_name' => $player_id //WRONG!!!!
-                    )
-                );
-            }
+            self::sendMovementNotification('attackStrongerSoldier', 
+                                            '${player_name} attacks a stronger soldier...', 
+                                            $x, 
+                                            $y, 
+                                            $ChosenSoldierId, 
+                                            $soldier[$soldierOwner]['soldier_id'], 
+                                            $player_id);
 
             $newScores = self::getCollectionFromDb( "SELECT player_id, player_score FROM player", true );
             self::notifyAllPlayers( "newScores", "", array(
