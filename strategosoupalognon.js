@@ -192,18 +192,31 @@ function (dojo, declare) {
         //// Utility methods
 
         findSoldierOnSquare : function(x, y) {
-            soldierFound = {type : "0", id : "0"};
+            soldierFound = {type : "0", id : "0", index : "-1"};
 
-            this.gamedatas.player_soldiers.forEach( soldier => {
+            this.gamedatas.player_soldiers.forEach( (soldier, index) => {
                 // console.log('soldier.x=' + soldier.x + ' ; soldier.y=' + soldier.y);
                 if(x == soldier.x && y == soldier.y) {
                     // console.log('Soldier found=' + soldier.id);
-                    soldierFound = ({type : soldier.type, id : soldier.id});
-                    return;
+                    soldierFound = ({type : soldier.type, id : soldier.id, index : index});
+                    return; //This return able to quit forEach "funtion" and not findSoldierOnSquare function
                 }
             });
 
             return soldierFound;
+        },
+
+        findSoldierIndexById : function(array, soldier_id) {
+            retValue = -1;
+            array.forEach( (soldier, index) => {
+                // console.log('soldier.x=' + soldier.x + ' ; soldier.y=' + soldier.y);
+                if(soldier.id == soldier_id) {
+                    retValue = index;
+                    return; //This return able to quit forEach "funtion" and not findSoldierOnSquare function
+                }
+            });
+
+            return retValue;
         },
         
         askForPlaceASoldier: function(item, x, y) {
@@ -286,24 +299,39 @@ function (dojo, declare) {
             this.placeOnObject('soldier_' + soldier_id, square_id);
             this.slideToObject('soldier_' + soldier_id, 'square_' + to_x + '_' + to_y, 750).play();
 
-            // this.gamedatas.player_soldiers[soldier_id] = {'id' : soldier_id.toString(), 'type' : soldier_type.toString(), 'x' : to_x.toString(), 'y' : to_y.toString()};
+            console.log("soldier_id = " + soldier_id);
+            if(player_id == this.player_id) {
+                console.log("player soldiers");
+                console.table(this.gamedatas.player_soldiers);
+                index = this.findSoldierIndexById(this.gamedatas.player_soldiers, soldier_id);
+                this.gamedatas.player_soldiers[index] = {'id' : soldier_id.toString(), 'type' : soldier_type.toString(), 'x' : to_x.toString(), 'y' : to_y.toString()};
+                console.table(this.gamedatas.player_soldiers);
+            }
+            else {
+                console.log("opponent soldiers");
+                console.table(this.gamedatas.opponent_soldiers);
+                index = this.findSoldierIndexById(this.gamedatas.opponent_soldiers, soldier_id);
+                this.gamedatas.opponent_soldiers[index] = {'id' : soldier_id.toString(), 'x' : to_x.toString(), 'y' : to_y.toString()};
+                console.table(this.gamedatas.opponent_soldiers);
+            }
         },
 
         removeSoldierInGamedatasById : function(soldier_id) {
-            array = this.gamedatas.player_soldiers;
-            index = array.findIndex(p => p.id == soldier_id.toString());
+            // console.log("soldier_id = " + soldier_id);
+            // console.table(this.gamedatas.player_soldiers);
+            index = this.gamedatas.player_soldiers.findIndex(p => p.id == soldier_id);
             if(index > -1) {
-                array.splice(index, 1);  //Remove opponent soldier
-                return;
-            }
-
-            array = this.gamedatas.opponent_soldiers;
-            index = array.findIndex(p => p.id == soldier_id.toString());
-            if(index > -1) {
-                array.splice(index, 1);  //Remove opponent soldier
+                this.gamedatas.player_soldiers.splice(index, 1);  //Remove opponent soldier
             }
             else {
-                this.showMessage( "Error... Please contact developpers", "error" );
+                // console.table(this.gamedatas.opponent_soldiers);
+                index = this.gamedatas.opponent_soldiers.findIndex(p => p.id == soldier_id);
+                if(index > -1) {
+                    this.gamedatas.opponent_soldiers.splice(index, 1);  //Remove opponent soldier
+                }
+                else {
+                    this.showMessage( "Error... Please contact developpers", "error" );
+                }
             }
         },
 
@@ -369,6 +397,10 @@ function (dojo, declare) {
                                 dojo.addClass( 'square_' + coords[1] + '_'+ coords[2], 'squareOutline' );
                             }
                         }
+                        // else {
+                        //     console.log("player_soldiers");
+                        //     console.table(this.gamedatas.player_soldiers);
+                        // }
                     });
                 }
             }
@@ -533,7 +565,7 @@ function (dojo, declare) {
             opponent_soldier_id = notif.args.opponent_soldier_id;
 
             this.slideToObjectAndDestroy('soldier_' + opponent_soldier_id, 'overall_player_board_' + this.player_id, 250);
-            // this.removeSoldierInGamedatasById(opponent_soldier_id);
+            this.removeSoldierInGamedatasById(opponent_soldier_id);
 
             this.moveSolider(active_player, soldier_id, x, y);
         },
