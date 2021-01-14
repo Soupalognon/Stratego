@@ -3,7 +3,7 @@
 <!-- 
 --------
 -- BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
--- ReversiTutorialSoupa implementation : © <Your name here> <Your email address here>
+-- ReversiTutorialSoupa implementation : © Gabriel Durand <gabriel.durand@hotmail.fr>
 -- 
 -- This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
 -- See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -19,7 +19,11 @@
 
     <div id="soldiers">
     </div>
+
+    <div id="soldiersExplanation"></div>
  </div>
+
+ 
 
  <a href="#" id="PutBackOnHand" class="bgabutton bgabutton_blue"><span>Put back on hand</span></a>
 

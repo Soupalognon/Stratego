@@ -1,7 +1,7 @@
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
- * StrategoSoupalognon implementation : © <Your name here> <Your email address here>
+ * StrategoSoupalognon implementation : © Gabriel Durand <gabriel.durand@hotmail.fr>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -24,6 +24,15 @@
     position: relative;
     width: 700px;
     height: 700px;
+}
+
+#soldiersExplanation {
+    background-image: url('img/RowAnimals.jpg');
+    position: relative;
+    width: 58px;
+    height: 700px;
+    left : 720px;
+    top : 0px;
 }
 
 .square {
