@@ -321,14 +321,7 @@ class StrategoSoupalognon extends Table
         );
     }
 
-
-//////////////////////////////////////////////////////////////////////////////
-//////////// Player actions
-//////////// 
-
-    function endTurnSpecialScoutAction() {
-        self::checkAction("endTurnSpecialScoutAction");
-
+    function sendMovementScoutAction() {
         $player_id = self::getActivePlayerId();
         $opponent_player_id = self::getOpponentID($player_id);
 
@@ -352,6 +345,41 @@ class StrategoSoupalognon extends Table
                 'player_name' => $player_id //WRONG!!!!
             )
         );
+    }
+
+
+//////////////////////////////////////////////////////////////////////////////
+//////////// Player actions
+//////////// 
+
+    function endTurnSpecialScoutAction() {
+        self::checkAction("endTurnSpecialScoutAction");
+
+        $player_id = self::getActivePlayerId();
+        $opponent_player_id = self::getOpponentID($player_id);
+
+
+        self::sendMovementScoutAction();
+        // $x = self::getGameStateValue( 'ScoutSpecialActionX' );
+        // $y = self::getGameStateValue( 'ScoutSpecialActionY' );
+        // $ChosenSoldierId = self::getGameStateValue( 'ChosenSoldierId' ) ;
+
+        // $y = self::invertLineOnBoard($opponent_player_id, $y);
+
+        // //Send movement only to opponent player
+        // self::notifyPlayer(
+        //     $opponent_player_id,
+        //     'moveSoldierEmptySquare', 
+        //     clienttranslate('${player_name} moves a soldier on board'), 
+        //     array (
+        //         'x' => $x,
+        //         'y' => $y,
+        //         'soldier_id' => $ChosenSoldierId,
+        //         'opponent_soldier_id' => 0,
+        //         'player_id' => $player_id,
+        //         'player_name' => $player_id //WRONG!!!!
+        //     )
+        // );
 
         self::setGameStateValue( 'ChosenSoldierId', $this->NO_PLAYER );   //Reset ID value
 
@@ -561,6 +589,11 @@ class StrategoSoupalognon extends Table
 
             $this->gamestate->nextState('endGame');
             return;
+        }
+
+        //Send movement to opponent player when scout action is finished an it attacks another soldier
+        if($this->gamestate->state()["name"] == "specialScoutAction") {
+            self::sendMovementScoutAction();
         }
 
         // Verify if you just move on an empty square or, if you click on an opponent soldier, you will attack! and maybe die...

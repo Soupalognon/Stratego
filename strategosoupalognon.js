@@ -206,6 +206,22 @@ function (dojo, declare) {
             return soldierFound;
         },
 
+        removeSoldierInGamedatasById : function(soldier_id) {
+            index = this.gamedatas.player_soldiers.findIndex(p => p.id == soldier_id);
+            if(index > -1) {
+                this.gamedatas.player_soldiers.splice(index, 1);  //Remove opponent soldier
+            }
+            else {
+                index = this.gamedatas.opponent_soldiers.findIndex(p => p.id == soldier_id);
+                if(index > -1) {
+                    this.gamedatas.opponent_soldiers.splice(index, 1);  //Remove opponent soldier
+                }
+                else {
+                    this.showMessage( "Error... Please contact developpers", "error" );
+                }
+            }
+        },
+
         findSoldierIndexById : function(array, soldier_id) {
             retValue = -1;
             array.forEach( (soldier, index) => {
@@ -301,37 +317,18 @@ function (dojo, declare) {
 
             console.log("soldier_id = " + soldier_id);
             if(player_id == this.player_id) {
-                console.log("player soldiers");
-                console.table(this.gamedatas.player_soldiers);
+                // console.log("player soldiers");
+                // console.table(this.gamedatas.player_soldiers);
                 index = this.findSoldierIndexById(this.gamedatas.player_soldiers, soldier_id);
                 this.gamedatas.player_soldiers[index] = {'id' : soldier_id.toString(), 'type' : soldier_type.toString(), 'x' : to_x.toString(), 'y' : to_y.toString()};
-                console.table(this.gamedatas.player_soldiers);
+                // console.table(this.gamedatas.player_soldiers);
             }
             else {
-                console.log("opponent soldiers");
-                console.table(this.gamedatas.opponent_soldiers);
+                // console.log("opponent soldiers");
+                // console.table(this.gamedatas.opponent_soldiers);
                 index = this.findSoldierIndexById(this.gamedatas.opponent_soldiers, soldier_id);
                 this.gamedatas.opponent_soldiers[index] = {'id' : soldier_id.toString(), 'x' : to_x.toString(), 'y' : to_y.toString()};
-                console.table(this.gamedatas.opponent_soldiers);
-            }
-        },
-
-        removeSoldierInGamedatasById : function(soldier_id) {
-            // console.log("soldier_id = " + soldier_id);
-            // console.table(this.gamedatas.player_soldiers);
-            index = this.gamedatas.player_soldiers.findIndex(p => p.id == soldier_id);
-            if(index > -1) {
-                this.gamedatas.player_soldiers.splice(index, 1);  //Remove opponent soldier
-            }
-            else {
                 // console.table(this.gamedatas.opponent_soldiers);
-                index = this.gamedatas.opponent_soldiers.findIndex(p => p.id == soldier_id);
-                if(index > -1) {
-                    this.gamedatas.opponent_soldiers.splice(index, 1);  //Remove opponent soldier
-                }
-                else {
-                    this.showMessage( "Error... Please contact developpers", "error" );
-                }
             }
         },
 
