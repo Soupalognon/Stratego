@@ -81,14 +81,18 @@ class StrategoSoupalognon extends Table
         // Create players and soldiers
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
         $sqlPlayer = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
+        $sqlSoldierCounter = "INSERT INTO soldiercounter (player_id) VALUES ";
         $sqlSoldier = "INSERT INTO soldier (soldier_type, soldier_name, player_id) VALUES ";
         $sqlArgPlayer = array();
         $sqlArgSoldier = array();
+        $sqlArgSoldierCounter = array();
 
         foreach( $players as $player_id => $player )
         {
             $color = array_shift( $default_colors );
             $sqlArgPlayer[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
+
+            $sqlArgSoldierCounter[] = "('".$player_id."')";
 
             foreach( $this->allSoldiers as $soldier ) {
                 for($i=0; $i<$soldier['number_of_soldier']; $i++) {
@@ -98,8 +102,11 @@ class StrategoSoupalognon extends Table
         }
         $sqlPlayer .= implode( $sqlArgPlayer, ',' );
         self::DbQuery( $sqlPlayer );
+        $sqlSoldierCounter .= implode( $sqlArgSoldierCounter, ',' );
+        self::DbQuery( $sqlSoldierCounter );
         $sqlSoldier .= implode( $sqlArgSoldier, ',' );
         self::DbQuery( $sqlSoldier );
+        
         self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
         self::reloadPlayersBasicInfos();
 
@@ -664,6 +671,10 @@ class StrategoSoupalognon extends Table
             self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $x AND board_y = $y)");
             self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $ChosenSoldierX AND board_y = $ChosenSoldierY)");
 
+            // Update scores
+            $sql = "UPDATE player SET player_score = player_score + 1";
+            self::DbQuery( $sql );
+
             self::sendDiscoverNotification($ChosenSoldierId, 
                                             $ChosenSoldierType, 
                                             $soldier[$soldierOwner]['soldier_id'], 
@@ -677,10 +688,20 @@ class StrategoSoupalognon extends Table
                                             $ChosenSoldierId, 
                                             $soldier[$soldierOwner]['soldier_id'], 
                                             $player_id);
+
+            $newScores = self::getCollectionFromDb( "SELECT player_id, player_score FROM player", true );
+            self::notifyAllPlayers( "newScores", "", array(
+                "scores" => $newScores
+            ) );
         }
         else {  //You attack a stronger soldier, you die...
             //Update board
             self::DbQuery("UPDATE board SET board_player = $this->NO_PLAYER, soldier_type = $this->EMPTY_SQUARE, soldier_id = $this->NO_SOLIDER WHERE (board_x = $ChosenSoldierX AND board_y = $ChosenSoldierY)");
+
+            // Update scores
+            $opponent_player_id = self::getOpponentID($player_id);
+            $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = $opponent_player_id";
+            self::DbQuery( $sql );
 
             self::sendDiscoverNotification($ChosenSoldierId, 
                                             $ChosenSoldierType, 
