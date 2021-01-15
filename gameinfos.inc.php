@@ -19,13 +19,13 @@ $gameinfos = array(
 'designer' => 'Jacques Johan Mogendorff',       
 
 // Game artist (or game artists, separated by commas)
-'artist' => 'Donato Giancola, Michael Graves, Paul Windle',         
+'artist' => 'Donato Giancola, Michael Graves, Paul Windle, Dominique Durand',         
 
 // Year of FIRST publication of this game. Can be negative.
 'year' => 1946,                 
 
 // Game publisher (use empty string if there is no publisher)
-'publisher' => 'Carlit',                     
+'publisher' => '4Kidz, Inc.',                     
 
 // Url of game publisher website
 'publisher_website' => 'https://www.carlit.ch/de/',   

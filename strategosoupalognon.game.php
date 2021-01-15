@@ -274,7 +274,7 @@ class StrategoSoupalognon extends Table
         self::notifyPlayer(
             self::getGameStateValue( 'FirstPlayerID' ),
             $notification, 
-            clienttranslate($message), 
+            $message, 
             array (
                 'x' => $x,
                 'y' => $y,
@@ -288,7 +288,7 @@ class StrategoSoupalognon extends Table
         self::notifyPlayer(
             self::getGameStateValue( 'SecondPlayerID' ),
             $notification, 
-            clienttranslate($message),
+            $message,
             array (
                 'x' => $x,
                 'y' => self::invertLineOnSquare2($y),
@@ -304,7 +304,7 @@ class StrategoSoupalognon extends Table
         self::notifyPlayer(
             $player_id,
             'discoverOpponentSoldier', 
-            clienttranslate(''), 
+            '', 
             array (
                 'soldier_id' => $opponent_soldier_id,
                 'soldier_type' => $opponent_soldier_type
@@ -313,7 +313,7 @@ class StrategoSoupalognon extends Table
         self::notifyPlayer(
             self::getOpponentID($player_id),
             'discoverOpponentSoldier', 
-            clienttranslate(''), 
+            '', 
             array (
                 'soldier_id' => $soldier_id,
                 'soldier_type' => $soldier_type
@@ -413,26 +413,26 @@ class StrategoSoupalognon extends Table
         if($player_id == $SecondPlayerID) {   //If the player_id is the second in the list
             $y = 11 - $y;   //Invert positon on the board
             if($y > 4) {
-                throw new BgaUserException ( 'You can only place your soldiers at the bottom part of the board' );
+                throw new BgaUserException ( clienttranslate('You can only place your soldiers at the bottom part of the board') );
             }
         }
         else {
             if($y < 7) {
-                throw new BgaUserException ( 'You can only place your soldiers at the bottom part of the board' );
+                throw new BgaUserException ( clienttranslate('You can only place your soldiers at the bottom part of the board') );
             }
         }
 
         $sql = "SELECT soldier_id id FROM board WHERE (board_x = $x AND board_y = $y)";
         $soldier = self::getCollectionFromDb( $sql );
         if((int)array_keys($soldier)[0] != 0) {
-            throw new BgaUserException ( 'A solider is already on this square, choose another square or remove this soldier before' );
+            throw new BgaUserException ( clienttranslate('A solider is already on this square, choose another square or remove this soldier before') );
         }
 
         //Verify if soldier has already been placed on board - Prevent a cheat or bug (if player plays to fast...)
         $sql = "SELECT soldier_id soldier_id FROM board WHERE soldier_id = $soldier_id";
         $soldier = self::getCollectionFromDb( $sql );
         if(count($soldier) != 0) {
-            throw new BgaUserException ( 'This soldier has already been placed on board' );
+            throw new BgaUserException ( clienttranslate('This soldier has already been placed on board') );
         }
 
         //Update board
@@ -458,7 +458,7 @@ class StrategoSoupalognon extends Table
             self::notifyPlayer(
                 $database_player_id,
                 'placeSoldier', 
-                clienttranslate(''), 
+                '', 
                 array (
                     'x' => $x,
                     'y' => $yTmp,
@@ -490,13 +490,13 @@ class StrategoSoupalognon extends Table
         $soldierOwner = (int)array_keys($soldier)[0];
         
         if($soldierOwner != $player_id) {
-            throw new BgaUserException ( 'This is not your soldier' );
+            throw new BgaUserException ( clienttranslate('This is not your soldier') );
         }
         else if($soldier[$player_id]['soldier_type'] == $this->BOMB) {
-            throw new BgaUserException ( 'You cannot move a bomb' );
+            throw new BgaUserException ( clienttranslate('You cannot move a bomb') );
         }
         else if($soldier[$player_id]['soldier_type'] == $this->FLAG) {
-            throw new BgaUserException ( 'You cannot move your flag' );
+            throw new BgaUserException ( clienttranslate('You cannot move your flag') );
         }
 
         self::setGameStateValue( 'ChosenSoldierId', $soldier[$player_id]['soldier_id'] );   //Save selected soldier ID
@@ -527,7 +527,7 @@ class StrategoSoupalognon extends Table
 
         if($soldierOwner == $player_id) {   //If a player click on another soldier of its own, select the new solider
             if($this->gamestate->state()["name"] == "specialScoutAction") {
-                throw new BgaUserException ( 'You cannot change selected soldier, you already moved' );
+                throw new BgaUserException ( clienttranslate('You cannot change selected soldier, you already moved') );
             }
             else {
                 $this->gamestate->nextState("selectSoldier");
@@ -539,22 +539,22 @@ class StrategoSoupalognon extends Table
             }
         }
         else if((abs($x - $ChosenSoldierX) >= 1 && abs($y - $ChosenSoldierY) >= 1)) {
-            throw new BgaUserException ( 'You cannot move in diagonal' );
+            throw new BgaUserException ( clienttranslate('You cannot move in diagonal') );
         }
         else if($this->gamestate->state()["name"] == "specialScoutAction") {
             if($soldier[$soldierOwner]['soldier_type'] == $this->EMPTY_SQUARE) {
-                throw new BgaUserException ( 'You can only attack but not move' );
+                throw new BgaUserException ( clienttranslate('You can only attack but not move') );
             }
             else if((abs($x - $ChosenSoldierX) > 1 || abs($y - $ChosenSoldierY) > 1)) {
-                throw new BgaUserException ( 'You can only attack close from you' );
+                throw new BgaUserException ( clienttranslate('You can only attack close from you') );
             }
         }
         else if( (abs($x - $ChosenSoldierX) > 1 || abs($y - $ChosenSoldierY) > 1) ) {
             if ($ChosenSoldierType != $this->SCOUT) {
-                throw new BgaUserException ( 'You cannot move more than one square at a time' );
+                throw new BgaUserException ( clienttranslate('You cannot move more than one square at a time') );
             }
             else if(self::specialScoutMovement($x, $y, $ChosenSoldierX, $ChosenSoldierY)) {
-                throw new BgaUserException ( 'There is a soldier or a lake on the direction' );
+                throw new BgaUserException ( clienttranslate('There is a soldier or a lake on the direction') );
             }
         }
 
@@ -623,7 +623,7 @@ class StrategoSoupalognon extends Table
             }
             else {
                 self::sendMovementNotification('moveSoldierEmptySquare', 
-                                                '${player_name} moves a soldier on board', 
+                                                clienttranslate('${player_name} moves a soldier on board'), 
                                                 $x, 
                                                 $y, 
                                                 $ChosenSoldierId, 
@@ -647,7 +647,7 @@ class StrategoSoupalognon extends Table
                                             $player_id);
 
             self::sendMovementNotification('attackWeakerSoldier', 
-                                            '${player_name} attack a weaker soldier!!', 
+                                            clienttranslate('${player_name} attack a weaker soldier!!'), 
                                             $x, 
                                             $y, 
                                             $ChosenSoldierId, 
@@ -671,7 +671,7 @@ class StrategoSoupalognon extends Table
                                             $player_id);
 
             self::sendMovementNotification('attackSameSoldier', 
-                                            '${player_name} attack a soldier of the same level...', 
+                                            clienttranslate('${player_name} attack a soldier of the same level...'), 
                                             $x, 
                                             $y, 
                                             $ChosenSoldierId, 
@@ -689,7 +689,7 @@ class StrategoSoupalognon extends Table
                                             $player_id);
 
             self::sendMovementNotification('attackStrongerSoldier', 
-                                            '${player_name} attacks a stronger soldier...', 
+                                            clienttranslate('${player_name} attacks a stronger soldier...'), 
                                             $x, 
                                             $y, 
                                             $ChosenSoldierId, 
