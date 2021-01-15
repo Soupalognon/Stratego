@@ -27,12 +27,23 @@
 }
 
 #soldiersExplanation {
-    background-image: url('img/RowAnimals.jpg');
+    background-image: url('img/AnimalsExplanations.png');
     position: relative;
-    width: 58px;
+    width: 351px;
     height: 700px;
     left : 720px;
     top : 0px;
+}
+
+.soldiers_number {
+    position: absolute;
+    font-weight: bold;
+    text-align:left;
+    font-size: small;
+    /* top: 25px; */
+    /* left: 170px; */
+    color: black;
+    z-index:2;
 }
 
 .square {

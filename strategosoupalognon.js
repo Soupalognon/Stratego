@@ -14,9 +14,12 @@
  * In this file, you are describing the logic of your user interface, in Javascript language.
  *
  */
+const NB_SOLDIERS = 12;
 const UNKNOWN_SOLDIER = 12;
 const NO_SOLDIER_ID = 0;
 const NO_SOLDIER_TYPE = 0;
+const THIS_PLAYER = 1;
+const OPPONENT_PLAYER = 2;
 
 define([
     "dojo","dojo/_base/declare",
@@ -68,6 +71,27 @@ function (dojo, declare) {
             //Connect the mouse click on each board square and soldiers
             dojo.query( '.square' ).connect( 'onclick', this, 'onClickOnBoard' );
 
+            //Display square around selected soldier
+            if(gamedatas.ChosenSoldierId != NO_SOLDIER_ID) {
+                square_id = document.getElementById("soldier_" + gamedatas.ChosenSoldierId).parentNode.id;
+                var coords = square_id.split('_');
+                dojo.addClass( 'square_' + coords[1] + '_' + coords[2], 'squareOutline' );
+                this.chosenSoldierId = gamedatas.ChosenSoldierId;
+            }
+
+            this.setupPlayerHand(gamedatas);
+
+            this.setupDisplaySoldiersOnBoard(gamedatas);
+
+            this.updateSoldiersCount(gamedatas, THIS_PLAYER);
+            this.updateSoldiersCount(gamedatas, OPPONENT_PLAYER);
+            
+            this.setupNotifications();
+
+            console.log( "Ending game setup" );
+        },
+
+        setupPlayerHand : function(gamedatas) {
             // Player hand
             this.playerHand = new ebg.stock(); // new stock object for hand
             this.playerHand.create( this, $('myhand'), this.cardwidth, this.cardheight );
@@ -75,7 +99,7 @@ function (dojo, declare) {
             dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
 
             // Create cards types
-            for (var value = 0; value < 12; value++) {
+            for (var value = 0; value < NB_SOLDIERS; value++) {
                 this.playerHand.addItemType(value, value, g_gamethemeurl + 'img/Animals.jpg', value); //img/Soldiers
             }
 
@@ -84,7 +108,9 @@ function (dojo, declare) {
                 var soldier = gamedatas.hand[i];
                 this.playerHand.addToStockWithId(soldier.type, soldier.id);
             }
+        },
 
+        setupDisplaySoldiersOnBoard : function(gamedatas) {
             //Display opponent soldiers already on board
             gamedatas.opponent_soldiers.forEach( soldier => {
                 this.placeSoldier(soldier.x, soldier.y, soldier.id, UNKNOWN_SOLDIER);
@@ -98,19 +124,48 @@ function (dojo, declare) {
             });
             // console.log("player_soldiers");
             // console.table(gamedatas.player_soldiers);
+        },
 
-            // console.log("gamedatas.ChosenSoldierId = " + gamedatas.ChosenSoldierId);
-            //Display square around selected soldier
-            if(gamedatas.ChosenSoldierId != 0) {
-                square_id = document.getElementById("soldier_" + gamedatas.ChosenSoldierId).parentNode.id;
-                var coords = square_id.split('_');
-                dojo.addClass( 'square_' + coords[1] + '_' + coords[2], 'squareOutline' );
-                this.chosenSoldierId = gamedatas.ChosenSoldierId;
+        updateSoldiersCount : function(gamedatas, player) {
+            console.log('soldiers_number_' + player + '_');
+
+            if(player == THIS_PLAYER) {
+                leftValue = 170;
             }
-            // Setup game notifications to handle (see "setupNotifications" method below)
-            this.setupNotifications();
+            else if(player == OPPONENT_PLAYER) {
+                leftValue = 250;
+            }
+            else {
+                console.log("ERROR!!");
+            }
 
-            console.log( "Ending game setup" );
+            for(i=0; i<NB_SOLDIERS; i++) 
+            {
+                soldier_type = (NB_SOLDIERS - i);
+
+                if($('soldiers_number_' + player + '_' + soldier_type) == null)  //If soldier information display is not already created
+                {
+                    // console.log('existe pas');
+                    dojo.place(
+                        this.format_block('jstpl_soldiers_number', 
+                        {
+                            player : player,
+                            soldier_type : soldier_type,
+                            left : leftValue,
+                            top : (i * 58) + 25
+                        }), 
+                        'soldiersExplanation',
+                    );
+
+                    $('soldiers_number_' + player + '_' + soldier_type).innerHTML = '1/1';
+                }
+                else    //If it is already created, just move its position in front of its card
+                {
+                    console.log('existe');
+                    // $('cardtext_' + player_id + '_' + card.id).innerHTML = 'followers:' + followers + '  /  HP:' + life_point;
+                    // dojo.style($('cardtext_' + player_id + '_' + card.id), {left : (textPosition.pos_left.toString() + "px"), top : textPosition.pos_top.toString() + "px"});
+                }
+            }
         },
 
 
@@ -192,7 +247,7 @@ function (dojo, declare) {
         //// Utility methods
 
         findSoldierOnSquare : function(x, y) {
-            soldierFound = {type : "0", id : "0", index : "-1"};
+            soldierFound = {type : NO_SOLDIER_TYPE.toString(), id : NO_SOLDIER_ID.toString(), index : "-1"};
 
             this.gamedatas.player_soldiers.forEach( (soldier, index) => {
                 // console.log('soldier.x=' + soldier.x + ' ; soldier.y=' + soldier.y);
@@ -345,7 +400,7 @@ function (dojo, declare) {
 
             if(this.currentState == 'initBoard') {
                 // console.table(this.findSoldierOnSquare(coords[1], coords[2]));
-                if(this.findSoldierOnSquare(coords[1], coords[2])["id"] != 0) {   //If a soldier is already on this square
+                if(this.findSoldierOnSquare(coords[1], coords[2])["id"] != NO_SOLDIER_ID) {   //If a soldier is already on this square
                     document.getElementById("PutBackOnHand").style.visibility = 'visible';
                 }
                 else {

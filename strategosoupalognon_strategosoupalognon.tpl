@@ -20,7 +20,9 @@
     <div id="soldiers">
     </div>
 
-    <div id="soldiersExplanation"></div>
+    <div id="soldiersExplanation">
+        <!-- <div id="soldiers_info"  class="soldiers_number"> 1/1</div> -->
+    </div>
  </div>
 
  
@@ -38,6 +40,8 @@
     var jstpl_soldiers = '<div class="soldiers" id="soldier_${id}" style="background-position:-${x}px 0px">\
                             </div>';
 
+    var jstpl_soldiers_number = '<div class="soldiers_number" id="soldiers_number_${player}_${soldier_type}" style="left: ${left}px; top: ${top}px;" >\
+                            </div>';
 </script>  
 
 {OVERALL_GAME_FOOTER}
