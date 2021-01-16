@@ -20,6 +20,7 @@ const NO_SOLDIER_ID = 0;
 const NO_SOLDIER_TYPE = 0;
 const THIS_PLAYER = 1;
 const OPPONENT_PLAYER = 2;
+const SOLIDER_COUNT = [1,6,1,8,5,4,4,4,3,2,1,1];
 
 define([
     "dojo","dojo/_base/declare",
@@ -85,6 +86,8 @@ function (dojo, declare) {
 
             this.updateSoldiersCount(gamedatas, THIS_PLAYER);
             this.updateSoldiersCount(gamedatas, OPPONENT_PLAYER);
+
+            this.getSoldierCount(THIS_PLAYER, 3);
             
             this.setupNotifications();
 
@@ -141,7 +144,7 @@ function (dojo, declare) {
 
             for(i=0; i<NB_SOLDIERS; i++) 
             {
-                soldier_type = (NB_SOLDIERS - i);
+                soldier_type = (NB_SOLDIERS - i - 1);
 
                 if($('soldiers_number_' + player + '_' + soldier_type) == null)  //If soldier information display is not already created
                 {
@@ -157,15 +160,39 @@ function (dojo, declare) {
                         'soldiersExplanation',
                     );
 
-                    $('soldiers_number_' + player + '_' + soldier_type).innerHTML = '1/1';
+                    $('soldiers_number_' + player + '_' + soldier_type).innerHTML = this.getSoldierCount(player, soldier_type) + '/' + SOLIDER_COUNT[soldier_type];
                 }
-                else    //If it is already created, just move its position in front of its card
+                else    //If it is already created
                 {
                     console.log('existe');
                     // $('cardtext_' + player_id + '_' + card.id).innerHTML = 'followers:' + followers + '  /  HP:' + life_point;
                     // dojo.style($('cardtext_' + player_id + '_' + card.id), {left : (textPosition.pos_left.toString() + "px"), top : textPosition.pos_top.toString() + "px"});
                 }
             }
+        },
+
+        getSoldierCount : function(player, soldier_type) {
+            // console.table(this.gamedatas.soldier_counter);
+
+            if(player == THIS_PLAYER) {
+                if(this.gamedatas.soldier_counter[0]['player_id'] == this.player_id) {
+                    counterArray = this.gamedatas.soldier_counter[0];
+                }
+                else {
+                    counterArray = this.gamedatas.soldier_counter[1];
+                }
+            }
+            else {
+                if(this.gamedatas.soldier_counter[0]['player_id'] != this.player_id) {
+                    counterArray = this.gamedatas.soldier_counter[0];
+                }
+                else {
+                    counterArray = this.gamedatas.soldier_counter[1];
+                }
+            }
+
+            // console.log(counterArray['counter' + soldier_type]);
+            return counterArray['counter' + soldier_type];
         },
 
 

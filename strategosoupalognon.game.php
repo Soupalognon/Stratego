@@ -186,6 +186,10 @@ class StrategoSoupalognon extends Table
             $result['ChosenSoldierId'] = $this->NO_SOLIDER;
         }
 
+        $result['soldier_counter'] = self::getObjectListFromDB(
+            "SELECT *
+             FROM soldiercounter" );
+
         $result['opponent_soldiers'] = self::getObjectListFromDB(
             "SELECT soldier_id id, board_x x, board_y y
              FROM board
@@ -193,8 +197,8 @@ class StrategoSoupalognon extends Table
 
         $result['player_soldiers'] = self::getObjectListFromDB(
             "SELECT soldier_id id, board_x x, board_y y, soldier_type type
-            FROM board
-            WHERE board_player = $current_player_id " );
+             FROM board
+             WHERE board_player = $current_player_id " );
 
         //If your are the second player, invert the board to see soldier at bottom
         if($current_player_id == self::getGameStateValue( 'SecondPlayerID' )) {
