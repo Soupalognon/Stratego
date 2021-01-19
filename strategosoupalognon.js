@@ -99,7 +99,7 @@ function (dojo, declare) {
 
             // Create cards types
             for (var value = 0; value < NB_SOLDIERS; value++) {
-                this.playerHand.addItemType(value, value, g_gamethemeurl + 'img/Animals.jpg', value); //img/Soldiers
+                this.playerHand.addItemType(value, value, g_gamethemeurl + 'img/Animals.jpg', value);
             }
 
             // Cards in player's hand
@@ -562,7 +562,6 @@ function (dojo, declare) {
             dojo.subscribe( 'updateSoldierCount', this, "notif_updateSoldierCount" );
             dojo.subscribe( 'putBackOnHand', this, "notif_putBackOnHand" );
             dojo.subscribe( 'getOpponentsoldiers', this, "notif_getOpponentsoldiers" );
-            dojo.subscribe( 'endGameDisplay', this, "notif_endGameDisplay" );
             this.notifqueue.setSynchronous( 'discoverOpponentSoldier', 2000 );
             this.notifqueue.setSynchronous( 'moveSoldierEmptySquare', 1000 );
             this.notifqueue.setSynchronous( 'attackWeakerSoldier', 1000 );
