@@ -826,6 +826,26 @@ class StrategoSoupalognon extends Table
     function stNextPlayer() {
         $player_id = self::activeNextPlayer();
         self::giveExtraTime($player_id);
+
+        //Verify if one player has no more movable soldiers
+        $soldier_counter = self::getObjectListFromDB(
+            "SELECT *
+            FROM soldiercounter");
+
+        foreach ($soldier_counter as $players) {
+            $soldiersCount = 0;
+            foreach ($players as $key => $value) {
+                if(strpos ($key, 'counter') !== false 
+                && strpos ($key, '0', 7) === false
+                && strpos ($key, '1', 7) === false) { //Count every soldiers except bombs and graals
+                    $soldiersCount += $value;
+                }
+            }
+            // self::dump("soldiersCount = ", $soldiersCount);
+            if($soldiersCount == 0)
+                $this->gamestate->nextState('endGame');
+        }
+        
         $this->gamestate->nextState('nextPlayer');
     }
 

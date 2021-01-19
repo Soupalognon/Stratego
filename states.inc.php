@@ -73,7 +73,7 @@ $machinestates = array(
         "description" => "",
         "type" => "game",
         "action" => "stNextPlayer",
-        "transitions" => array( "nextPlayer" => 10 )
+        "transitions" => array( "nextPlayer" => 10, "endGame" => 99 )
     ),
    
     // Final state.
