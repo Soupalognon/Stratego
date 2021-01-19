@@ -116,7 +116,7 @@ class StrategoSoupalognon extends Table
         // $player_id = 2337782;
         // {
         //     //Update board
-        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 1, soldier_id = 1 WHERE (board_y = 6 AND board_x = 1)");
+        //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 0, soldier_id = 1 WHERE (board_y = 6 AND board_x = 1)");
         //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 2, soldier_id = 2 WHERE (board_y = 7 AND board_x = 5)");
         //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 11, soldier_id = 3 WHERE (board_y = 5 AND board_x = 2)");
         //     self::DbQuery("UPDATE board SET board_player = $player_id, soldier_type = 5, soldier_id = 4 WHERE (board_y = 8 AND board_x = 7)");
@@ -334,22 +334,33 @@ class StrategoSoupalognon extends Table
     }
 
     function sendDiscoverNotification($soldier_id, $soldier_type, $opponent_soldier_id, $opponent_soldier_type, $player_id) {
+        $isFlag = 0;
+        if($opponent_soldier_type == $this->FLAG) {
+            $isFlag = 1;
+        }
         self::notifyPlayer(
             $player_id,
             'discoverOpponentSoldier', 
             '', 
             array (
                 'soldier_id' => $opponent_soldier_id,
-                'soldier_type' => $opponent_soldier_type
+                'soldier_type' => $opponent_soldier_type,
+                'isFlag' => $isFlag
             )
         );
+
+        $isFlag = 0;
+        if($soldier_type == $this->FLAG) {
+            $isFlag = 1;
+        }
         self::notifyPlayer(
             self::getOpponentID($player_id),
             'discoverOpponentSoldier', 
             '', 
             array (
                 'soldier_id' => $soldier_id,
-                'soldier_type' => $soldier_type
+                'soldier_type' => $soldier_type,
+                'isFlag' => $isFlag
             )
         );
     }
@@ -652,6 +663,12 @@ class StrategoSoupalognon extends Table
             self::notifyAllPlayers( "newScores", "", array(
                 "scores" => $newScores
             ) );
+
+            self::sendDiscoverNotification($ChosenSoldierId, 
+                                            $ChosenSoldierType, 
+                                            $soldier[$soldierOwner]['soldier_id'], 
+                                            $soldier[$soldierOwner]['soldier_type'],
+                                            $player_id);
 
             $this->gamestate->nextState('endGame');
             return;

@@ -562,6 +562,7 @@ function (dojo, declare) {
             dojo.subscribe( 'updateSoldierCount', this, "notif_updateSoldierCount" );
             dojo.subscribe( 'putBackOnHand', this, "notif_putBackOnHand" );
             dojo.subscribe( 'getOpponentsoldiers', this, "notif_getOpponentsoldiers" );
+            dojo.subscribe( 'endGameDisplay', this, "notif_endGameDisplay" );
             this.notifqueue.setSynchronous( 'discoverOpponentSoldier', 2000 );
             this.notifqueue.setSynchronous( 'moveSoldierEmptySquare', 1000 );
             this.notifqueue.setSynchronous( 'attackWeakerSoldier', 1000 );
@@ -571,6 +572,7 @@ function (dojo, declare) {
         notif_discoverOpponentSoldier : function(notif) {
             opponent_soldier_id = notif.args.soldier_id;
             opponent_soldier_type = notif.args.soldier_type;
+            isFlag = notif.args.isFlag;
 
             square_id = $("soldier_" + opponent_soldier_id).parentNode.id;
             var coords = square_id.split('_');
@@ -597,20 +599,27 @@ function (dojo, declare) {
                 dojo.fadeOut( { node: 'soldier_' + opponent_soldier_id,
                                 duration: 200 } ),
                 dojo.fadeIn( {  node: 'soldier_1000',
-                                duration: 400 } ),
-                
-                dojo.fadeOut( { 
-                                node: 'soldier_1000',
-                                delay: 750,
-                                duration: 250,
+                                duration: 400,
                                 onEnd: function( node ) {
-                                    dojo.query('#soldier_1000').forEach(dojo.destroy);
-                                    // dojo.query( '.square' ).removeClass( 'squareOutline' );
+                                    if(!isFlag) //If you display the flag, let it displayed. otherwise, hide the opponent soldier
+                                    {
+                                        var anim2 = dojo.fx.chain( [
+                                            dojo.fadeOut( { 
+                                                node: 'soldier_1000',
+                                                delay: 750,
+                                                duration: 250,
+                                                onEnd: function( node ) {
+                                                    dojo.query('#soldier_1000').forEach(dojo.destroy);
+                                                    // dojo.query( '.square' ).removeClass( 'squareOutline' );
+                                                }
+                                              } ),
+                                            dojo.fadeIn( {  node: 'soldier_' + opponent_soldier_id,
+                                                            duration: 200  } )
+                                        ] ); // end of dojo.fx.chain
+                                        anim2.play();
+                                    }
                                 }
-                              } ),
-                dojo.fadeIn( {  node: 'soldier_' + opponent_soldier_id,
-                                duration: 200  } )
-            
+                             } ),
             ] ); // end of dojo.fx.chain
             anim.play();
         },
@@ -733,6 +742,72 @@ function (dojo, declare) {
 
             this.setupDisplaySoldiersOnBoard(OPPONENT_PLAYER);
             this.updateSoldiersCount(OPPONENT_PLAYER);
+        },
+
+        notif_endGameDisplay : function( notif ) {
+            opponent_soldier_id = notif.args.soldier_id;
+            opponent_soldier_type = notif.args.soldier_type;
+            isGraal = notif.args.isGraal;
+
+            square_id = $("soldier_" + opponent_soldier_id).parentNode.id;
+            var coords = square_id.split('_');
+            x = coords[1];
+            y = coords[2];
+
+            //Display the opponent soldier in a temporary object
+            dojo.place(
+                this.format_block('jstpl_soldiers', 
+                {
+                    id : 1000,
+                    x : this.cardwidth * opponent_soldier_type,
+                }),
+                'square_' + x + '_' + y,
+            );
+            this.placeOnObject('soldier_1000', 'square_' + x + '_' + y);
+            dojo.fadeOut({
+                node: "soldier_1000",
+                duration: 0,
+              } ).play();
+
+            // Make the opponent visible uring a short period of time
+            var anim = dojo.fx.chain( [
+                dojo.fadeOut( { node: 'soldier_' + opponent_soldier_id,
+                                duration: 200 } ),
+                dojo.fadeIn( {  node: 'soldier_1000',
+                                duration: 400,
+                                onEnd: function( node ) {
+                                    if(!isGraal) {
+                                        // dojo.fx.chain( [
+                                        //     dojo.fadeOut( { 
+                                        //         node: 'soldier_1000',
+                                        //         delay: 750,
+                                        //         duration: 250,
+                                        //         onEnd: function( node ) {
+                                        //             dojo.query('#soldier_1000').forEach(dojo.destroy);
+                                        //             // dojo.query( '.square' ).removeClass( 'squareOutline' );
+                                        //         }
+                                        //       } ),
+                                        //     dojo.fadeIn( {  node: 'soldier_' + opponent_soldier_id,
+                                        //                     duration: 200  } )
+                                        // ] ); // end of dojo.fx.chain
+                                        // anim.play();
+                                    }
+                                }
+                             } ),
+                // dojo.fadeOut( { 
+                //                 node: 'soldier_1000',
+                //                 delay: 750,
+                //                 duration: 250,
+                //                 onEnd: function( node ) {
+                //                     dojo.query('#soldier_1000').forEach(dojo.destroy);
+                //                     // dojo.query( '.square' ).removeClass( 'squareOutline' );
+                //                 }
+                //               } ),
+                // dojo.fadeIn( {  node: 'soldier_' + opponent_soldier_id,
+                //                 duration: 200  } )
+            
+            ] ); // end of dojo.fx.chain
+            anim.play();
         },
    });
 });
