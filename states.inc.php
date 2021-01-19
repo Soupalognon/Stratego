@@ -22,7 +22,7 @@ $machinestates = array(
         "description" => "",
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => array( "" => 3 )
+        "transitions" => array( "" => 10 )
     ),
     
     2 => array(
@@ -30,42 +30,50 @@ $machinestates = array(
             "description" => clienttranslate('You must place all your soldiers'),
     		"type" => "multipleactiveplayer",
     		"possibleactions" => array( "placeSoldier", "putBackOnHand" ),
-    		"transitions" => array( "initBoard" => 3 )
+    		"transitions" => array( "initBoard" => 4 )
     ),
 
-    3 => array(
+    4 => array(
+        "name" => "endInitBoard",
+        "description" => "",
+        "type" => "game",
+        "action" => "stEndInitBoard",
+        "transitions" => array( "endInitBoard" => 10 )
+    ),
+
+    10 => array(
         "name" => "selectSoldier",
         "description" => clienttranslate('${actplayer} must play'),
         "descriptionmyturn" => clienttranslate('${you} must select a soldier'),
         "type" => "activeplayer",
         "possibleactions" => array( "selectSoldier" ),
-        "transitions" => array( "selectSoldier" => 4 )
+        "transitions" => array( "selectSoldier" => 12 )
     ),
 
-    4 => array(
+    12 => array(
         "name" => "moveSoldier",
         "description" => clienttranslate('${actplayer} must play'),
         "descriptionmyturn" => clienttranslate('${you} must move this soldier'),
         "type" => "activeplayer",
         "possibleactions" => array( "moveSoldier" ),
-        "transitions" => array( "selectSoldier" => 3, "moveSoldier" => 10,"specialScoutAction" => 5, "endGame" => 99 )
+        "transitions" => array( "selectSoldier" => 10, "moveSoldier" => 20, "specialScoutAction" => 14, "endGame" => 99 )
     ),
 
-    5 => array(
+    14 => array(
         "name" => "specialScoutAction",
         "description" => clienttranslate('${actplayer} must play'),
         "descriptionmyturn" => clienttranslate('${you} need to choose if you want to attack or end your turn'),
         "type" => "activeplayer",
         "possibleactions" => array( "moveSoldier" , "endTurnSpecialScoutAction" ),
-        "transitions" => array( "moveSoldier" => 10, "endGame" => 99 )
+        "transitions" => array( "moveSoldier" => 20, "endGame" => 99 )
     ),
 
-    10 => array(
+    20 => array(
         "name" => "nextPlayer",
         "description" => "",
         "type" => "game",
         "action" => "stNextPlayer",
-        "transitions" => array( "nextPlayer" => 3 )
+        "transitions" => array( "nextPlayer" => 10 )
     ),
    
     // Final state.

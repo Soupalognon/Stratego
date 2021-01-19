@@ -43,8 +43,13 @@ $this->MINER = 4;
 $this->MARSHAL = 11;
 
 $this->UNKNOWN_SOLDIER = 12;
-$this->EMPTY_SQUARE = -1;
-$this->NO_SOLIDER = 0;
-$this->NO_TYPE = 0;
+$this->NO_TYPE = -1;
 $this->NO_PLAYER = 0;
+$this->NO_SOLIDER_ID = 0;
 $this->LAKE = -1;
+
+$this->NB_LINES = 11;    //I put 11 instead of 10 because because first line is 1 and I need to do (lines - y + 1). I put them together
+
+$this->NO_CHEAT = 0;
+$this->SPY_KILLS = 1;
+$this->BOMB_KILLS = 2;

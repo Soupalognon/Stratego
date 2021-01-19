@@ -17,7 +17,7 @@
 const NB_SOLDIERS = 12;
 const UNKNOWN_SOLDIER = 12;
 const NO_SOLDIER_ID = 0;
-const NO_SOLDIER_TYPE = 0;
+const NO_SOLDIER_TYPE = -1;
 const THIS_PLAYER = 1;
 const OPPONENT_PLAYER = 2;
 const SOLIDER_COUNT = [1,6,1,8,5,4,4,4,3,2,1,1];
@@ -82,13 +82,12 @@ function (dojo, declare) {
 
             this.setupPlayerHand(gamedatas);
 
-            this.setupDisplaySoldiersOnBoard(gamedatas);
+            this.setupDisplaySoldiersOnBoard(THIS_PLAYER);
+            this.setupDisplaySoldiersOnBoard(OPPONENT_PLAYER);
 
-            this.updateSoldiersCount(gamedatas, THIS_PLAYER);
-            this.updateSoldiersCount(gamedatas, OPPONENT_PLAYER);
+            this.updateSoldiersCount(THIS_PLAYER);
+            this.updateSoldiersCount(OPPONENT_PLAYER);
 
-            this.getSoldierCount(THIS_PLAYER, 3);
-            
             this.setupNotifications();
 
             console.log( "Ending game setup" );
@@ -113,25 +112,27 @@ function (dojo, declare) {
             }
         },
 
-        setupDisplaySoldiersOnBoard : function(gamedatas) {
-            //Display opponent soldiers already on board
-            gamedatas.opponent_soldiers.forEach( soldier => {
-                this.placeSoldier(soldier.x, soldier.y, soldier.id, UNKNOWN_SOLDIER);
-            });
-            // console.log("opponent_soldiers");
-            // console.table(gamedatas.opponent_soldiers);
-
-            //Display player soldiers already on board
-            gamedatas.player_soldiers.forEach( soldier => {
-                this.placeSoldier(soldier.x, soldier.y, soldier.id, soldier.type);
-            });
-            // console.log("player_soldiers");
-            // console.table(gamedatas.player_soldiers);
+        setupDisplaySoldiersOnBoard : function(player) {
+            if(player == OPPONENT_PLAYER) {
+                //Display opponent soldiers already on board
+                this.gamedatas.opponent_soldiers.forEach( soldier => {
+                    this.placeSoldier(soldier.x, soldier.y, soldier.id, UNKNOWN_SOLDIER);
+                });
+                // console.log("opponent_soldiers");
+                // console.table(this.gamedatas.opponent_soldiers);
+            }
+            else if(player == THIS_PLAYER) {
+                //Display player soldiers already on board
+                this.gamedatas.player_soldiers.forEach( soldier => {
+                    this.placeSoldier(soldier.x, soldier.y, soldier.id, soldier.type);
+                });
+                // console.log("player_soldiers");
+                // console.table(this.gamedatas.player_soldiers);
+            }
         },
 
-        updateSoldiersCount : function(gamedatas, player) {
-            console.log('soldiers_number_' + player + '_');
-
+        updateSoldiersCount : function(player, soldier_type = NO_SOLDIER_TYPE) {
+            leftValue = 0;
             if(player == THIS_PLAYER) {
                 leftValue = 170;
             }
@@ -142,32 +143,41 @@ function (dojo, declare) {
                 console.log("ERROR!!");
             }
 
-            for(i=0; i<NB_SOLDIERS; i++) 
+            if(soldier_type == NO_SOLDIER_TYPE) {
+                for(i=0; i<NB_SOLDIERS; i++) {
+                    soldier_type = (NB_SOLDIERS - i - 1);
+
+                    if($('soldiers_number_' + player + '_' + soldier_type) == null)  //If soldier information display is not already created
+                    {
+                        // console.log('existe pas');
+                        dojo.place(
+                            this.format_block('jstpl_soldiers_number', 
+                            {
+                                player : player,
+                                soldier_type : soldier_type,
+                                left : leftValue,
+                                top : (i * 58) + 25
+                            }), 
+                            'soldiersExplanation',
+                        );
+                    }
+
+                    text = this.getSoldierCount(player, soldier_type);
+                    if(text != -1) 
+                        text += '/' + SOLIDER_COUNT[soldier_type];
+                    else 
+                        text = '?';
+                    $('soldiers_number_' + player + '_' + soldier_type).innerHTML = text;
+                }
+            }
+            else 
             {
-                soldier_type = (NB_SOLDIERS - i - 1);
-
-                if($('soldiers_number_' + player + '_' + soldier_type) == null)  //If soldier information display is not already created
-                {
-                    // console.log('existe pas');
-                    dojo.place(
-                        this.format_block('jstpl_soldiers_number', 
-                        {
-                            player : player,
-                            soldier_type : soldier_type,
-                            left : leftValue,
-                            top : (i * 58) + 25
-                        }), 
-                        'soldiersExplanation',
-                    );
-
-                    $('soldiers_number_' + player + '_' + soldier_type).innerHTML = this.getSoldierCount(player, soldier_type) + '/' + SOLIDER_COUNT[soldier_type];
-                }
-                else    //If it is already created
-                {
-                    console.log('existe');
-                    // $('cardtext_' + player_id + '_' + card.id).innerHTML = 'followers:' + followers + '  /  HP:' + life_point;
-                    // dojo.style($('cardtext_' + player_id + '_' + card.id), {left : (textPosition.pos_left.toString() + "px"), top : textPosition.pos_top.toString() + "px"});
-                }
+                text = this.getSoldierCount(player, soldier_type);
+                if(text != -1) 
+                    text += '/' + SOLIDER_COUNT[soldier_type];
+                else 
+                    text = '?';
+                $('soldiers_number_' + player + '_' + soldier_type).innerHTML = text;
             }
         },
 
@@ -175,24 +185,25 @@ function (dojo, declare) {
             // console.table(this.gamedatas.soldier_counter);
 
             if(player == THIS_PLAYER) {
-                if(this.gamedatas.soldier_counter[0]['player_id'] == this.player_id) {
+                if(this.gamedatas.soldier_counter[0]['player_id'] == this.player_id) 
                     counterArray = this.gamedatas.soldier_counter[0];
-                }
-                else {
+                else 
                     counterArray = this.gamedatas.soldier_counter[1];
-                }
             }
             else {
-                if(this.gamedatas.soldier_counter[0]['player_id'] != this.player_id) {
+                if(this.gamedatas.soldier_counter[0]['player_id'] != this.player_id) 
                     counterArray = this.gamedatas.soldier_counter[0];
-                }
-                else {
+                else 
                     counterArray = this.gamedatas.soldier_counter[1];
-                }
             }
 
+            if(counterArray != undefined)  //If the soldier counter exist, read soldier counter. To prevent initBoard state to display oppoenent soldier counter
+                retValue = counterArray['counter' + soldier_type];
+            else 
+                retValue = -1;
+            
             // console.log(counterArray['counter' + soldier_type]);
-            return counterArray['counter' + soldier_type];
+            return retValue;
         },
 
 
@@ -213,7 +224,6 @@ function (dojo, declare) {
             {
                 switch( stateName )
                 {
-                    
                     case 'specialScoutAction':
                         //Diplay end turn button
                         document.getElementById("endTurnButton").style.visibility = 'visible';
@@ -530,19 +540,6 @@ function (dojo, declare) {
                 }, this, function(result) {
                 }, 
                 function(is_error) {
-                    if(!is_error) {
-                        soldier = this.findSoldierOnSquare(coords[1], coords[2]);
-                        soldier_id = soldier["id"];
-                        soldier_type = soldier["type"];
-            
-                        this.playerHand.addToStockWithId(soldier_type, soldier_id);
-                        this.slideToObjectAndDestroy('soldier_' + soldier_id, 'myhand_item_' + soldier_id, 250);
-
-                        document.getElementById("PutBackOnHand").style.visibility = 'hidden';
-                        dojo.query( '.square' ).removeClass( 'squareOutline' );
-
-                        this.removeSoldierInGamedatasById(soldier_id);
-                    }
                 });
             }
         },
@@ -562,6 +559,9 @@ function (dojo, declare) {
             dojo.subscribe( 'attackStrongerSoldier', this, "notif_attackStrongerSoldier" );
             dojo.subscribe( 'newScores', this, "notif_newScores" );
             dojo.subscribe( 'discoverOpponentSoldier', this, "notif_discoverOpponentSoldier" );
+            dojo.subscribe( 'updateSoldierCount', this, "notif_updateSoldierCount" );
+            dojo.subscribe( 'putBackOnHand', this, "notif_putBackOnHand" );
+            dojo.subscribe( 'getOpponentsoldiers', this, "notif_getOpponentsoldiers" );
             this.notifqueue.setSynchronous( 'discoverOpponentSoldier', 2000 );
             this.notifqueue.setSynchronous( 'moveSoldierEmptySquare', 1000 );
             this.notifqueue.setSynchronous( 'attackWeakerSoldier', 1000 );
@@ -653,7 +653,6 @@ function (dojo, declare) {
             x = notif.args.x;
             y = notif.args.y;
             active_player = notif.args.player_id;
-            
             soldier_id = notif.args.soldier_id;
             opponent_soldier_id = notif.args.opponent_soldier_id;
 
@@ -668,18 +667,12 @@ function (dojo, declare) {
             x = notif.args.x;
             y = notif.args.y;
             active_player = notif.args.player_id;
-
             soldier_id = notif.args.soldier_id;
             opponent_soldier_id = notif.args.opponent_soldier_id;
 
             this.slideToObjectAndDestroy('soldier_' + soldier_id, 'overall_player_board_' + this.player_id, 250);
 
             this.removeSoldierInGamedatasById(soldier_id);
-
-            // console.log("opponent_soldiers");
-            // console.table(this.gamedatas.opponent_soldiers);
-            // console.log("player_soldiers");
-            // console.table(this.gamedatas.player_soldiers);
         },
 
         notif_newScores: function( notif )
@@ -690,5 +683,54 @@ function (dojo, declare) {
                 this.scoreCtrl[ player_id ].toValue( newScore );
             }
         },
-   });             
+
+        notif_updateSoldierCount : function( notif ) {
+            player_id = notif.args.player_id;
+            soldier_type = notif.args.soldier_type;
+            value = notif.args.value;
+
+            // console.log("player_id = " + player_id);
+            // console.log("soldier_type = " + soldier_type);
+            
+            index = this.gamedatas.soldier_counter.findIndex(p => p.player_id == player_id);
+            // console.log("index = " + index);
+            // console.log("this.gamedatas.soldier_counter[index]['counter' + soldier_type] = " + this.gamedatas.soldier_counter[index]['counter' + soldier_type]);
+            this.gamedatas.soldier_counter[index]['counter' + soldier_type] = (Number(this.gamedatas.soldier_counter[index]['counter' + soldier_type]) + value).toString();
+
+            if(player_id == this.player_id)
+                player_id = THIS_PLAYER;
+            else
+                player_id = OPPONENT_PLAYER;
+
+            // console.table(this.gamedatas.soldier_counter);
+            this.updateSoldiersCount(player_id, soldier_type);
+        },
+
+        notif_putBackOnHand : function( notif ) {
+            soldier_id = notif.args.soldier_id;
+            soldier_type = notif.args.soldier_type;
+
+            this.playerHand.addToStockWithId(soldier_type, soldier_id);
+            this.slideToObjectAndDestroy('soldier_' + soldier_id, 'myhand_item_' + soldier_id, 250);
+
+            document.getElementById("PutBackOnHand").style.visibility = 'hidden';
+            dojo.query( '.square' ).removeClass( 'squareOutline' );
+
+            this.removeSoldierInGamedatasById(soldier_id);
+        },
+
+        notif_getOpponentsoldiers : function( notif ) {
+            console.log("notif_getOpponentsoldiers");
+            $opponent_soldiers = notif.args.opponent_soldiers;
+
+            // console.table($opponent_soldiers);
+            this.gamedatas.opponent_soldiers = $opponent_soldiers;
+
+            this.gamedatas.soldier_counter[1] = notif.args.soldier_counter[0];
+            // console.table(this.gamedatas.soldier_counter);
+
+            this.setupDisplaySoldiersOnBoard(OPPONENT_PLAYER);
+            this.updateSoldiersCount(OPPONENT_PLAYER);
+        },
+   });
 });
